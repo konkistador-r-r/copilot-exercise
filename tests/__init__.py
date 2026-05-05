@@ -1,0 +1,1 @@
+"""Test package for the FastAPI extracurricular activities management API."""
