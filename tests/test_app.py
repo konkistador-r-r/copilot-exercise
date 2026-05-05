@@ -1,3 +1,5 @@
+from src.app import activities
+
 def test_root_redirect(client):
     """Test root endpoint redirects to static/index.html"""
     # Arrange - no special setup needed
@@ -21,7 +23,7 @@ def test_get_activities(client):
     assert response.status_code == 200
     data = response.json()
     assert isinstance(data, dict)
-    assert len(data) == 9  # From the app, there are 9 activities
+    assert len(data) == len(activities)  # Use dynamic count instead of hardcoded
     assert "Chess Club" in data
     assert "Programming Class" in data
 
@@ -98,6 +100,26 @@ def test_signup_duplicate(client):
     # Assert
     assert response.status_code == 400
     assert response.json() == {"detail": "Student already signed up for this activity"}
+
+
+def test_signup_at_capacity(client):
+    """Test signup when activity is at maximum capacity"""
+    # Arrange
+    activity_name = "Tennis Club"  # max_participants: 10, has 2 participants
+    # Add participants to reach capacity
+    for i in range(8):  # 2 already + 8 = 10
+        email = f"student{i}@mergington.edu"
+        client.post(f"/activities/{activity_name}/signup", params={"email": email})
+    
+    # Now at capacity, try to add one more
+    email = "overflow@mergington.edu"
+
+    # Act
+    response = client.post(f"/activities/{activity_name}/signup", params={"email": email})
+
+    # Assert
+    assert response.status_code == 400
+    assert response.json() == {"detail": "Activity is at maximum capacity"}
 
 
 def test_remove_participant_success(client):

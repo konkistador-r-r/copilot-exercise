@@ -3,20 +3,19 @@ from fastapi.testclient import TestClient
 from src.app import app, activities
 import copy
 
-# Original activities data for resetting
+# Original activities data for resetting (captured at import time)
 ORIGINAL_ACTIVITIES = copy.deepcopy(activities)
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def client():
-    """FastAPI TestClient fixture"""
+    """FastAPI TestClient fixture for making HTTP requests in tests."""
     return TestClient(app)
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(scope="function", autouse=True)
 def reset_app_state():
-    """Reset the activities dictionary before each test"""
+    """Reset the global activities dictionary before each test to ensure isolation."""
     global activities
     activities.clear()
     activities.update(copy.deepcopy(ORIGINAL_ACTIVITIES))
-    yield

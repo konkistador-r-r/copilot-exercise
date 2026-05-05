@@ -84,19 +84,19 @@ def root():
 
 
 @app.get("/activities")
-def get_activities():
+def get_activities() -> dict:
     return activities
 
 
 @app.get("/activities/{activity_name}")
-def get_activity(activity_name: str):
+def get_activity(activity_name: str) -> dict:
     if activity_name not in activities:
         raise HTTPException(status_code=404, detail="Activity not found")
     return activities[activity_name]
 
 
 @app.post("/activities/{activity_name}/signup")
-def signup_for_activity(activity_name: str, email: str):
+def signup_for_activity(activity_name: str, email: str) -> dict:
     """Sign up a student for an activity"""
     # Validate activity exists
     if activity_name not in activities:
@@ -109,13 +109,17 @@ def signup_for_activity(activity_name: str, email: str):
     if email in activity["participants"]:
         raise HTTPException(status_code=400, detail="Student already signed up for this activity")
 
+    # Check if activity is at capacity
+    if len(activity["participants"]) >= activity["max_participants"]:
+        raise HTTPException(status_code=400, detail="Activity is at maximum capacity")
+
     # Add student
     activity["participants"].append(email)
     return {"message": f"Signed up {email} for {activity_name}"}
 
 
 @app.delete("/activities/{activity_name}/participants")
-def remove_participant(activity_name: str, email: str):
+def remove_participant(activity_name: str, email: str) -> dict:
     """Remove a student from an activity"""
     if activity_name not in activities:
         raise HTTPException(status_code=404, detail="Activity not found")
